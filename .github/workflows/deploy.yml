@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy Minecraft Server
 
 on:
   push:
@@ -25,224 +25,27 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
         
-    - name: Create deployment package
+    - name: Deploy to EC2
       run: |
-        # Create a deployment package excluding unnecessary files
-        # Use a temporary directory to avoid tar including itself
-        mkdir -p /tmp/deploy
-        cp -r . /tmp/deploy/minestrike
+        # Set environment variables for the deployment script
+        export EC2_HOST="$EC2_HOST"
+        export EC2_USER="$EC2_USER"
+        export SSH_PRIVATE_KEY="$SSH_KEY"
         
-        # Remove unnecessary files from the copy
-        rm -rf /tmp/deploy/minestrike/.git
-        rm -rf /tmp/deploy/minestrike/.github
-        rm -rf /tmp/deploy/minestrike/server/logs
-        rm -rf /tmp/deploy/minestrike/server/cache
-        rm -rf /tmp/deploy/minestrike/server/libraries
-        rm -rf /tmp/deploy/minestrike/server/versions
-        rm -rf /tmp/deploy/minestrike/server/server.jar
-        rm -rf /tmp/deploy/minestrike/logs
-        find /tmp/deploy/minestrike -name "*.log" -delete
-        find /tmp/deploy/minestrike -name ".DS_Store" -delete
-        find /tmp/deploy/minestrike -name "*.tmp" -delete
-        find /tmp/deploy/minestrike -name "*.backup" -delete
+        # Run the GitHub Actions deployment script
+        chmod +x deploy-github-actions.sh
+        ./deploy-github-actions.sh
         
-        # Create the tar file
-        cd /tmp/deploy
-        tar -czf minestrike-deploy.tar.gz minestrike/
-        
-        # Move it back to the working directory
-        mv minestrike-deploy.tar.gz $GITHUB_WORKSPACE/
-          
-    - name: Upload deployment package to EC2
-      run: |
-        scp -i ~/.ssh/id_rsa minestrike-deploy.tar.gz $EC2_USER@$EC2_HOST:/tmp/
-        
-    - name: Deploy on EC2
-      run: |
-        ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
-          set -e
-          
-          echo "🚀 Starting fresh EC2 deployment..."
-          
-          # Update system packages
-          echo "📦 Updating system packages..."
-          sudo apt update
-          sudo apt upgrade -y
-          sudo apt install -y curl wget screen netcat-openbsd unzip
-          
-          # Install Java 17 if not present
-          echo "☕ Installing Java 17..."
-          if ! java -version 2>&1 | grep -q "17\|18\|19\|20\|21\|22"; then
-            sudo apt install -y openjdk-17-jdk
-          fi
-          
-          # Create minecraft user if not exists
-          echo "👤 Creating minecraft user..."
-          if ! id minecraft &>/dev/null; then
-            sudo useradd -r -s /bin/bash -d /opt/minecraft minecraft
-          fi
-          
-          # Create directory structure
-          echo "📁 Creating directory structure..."
-          sudo mkdir -p /opt/minecraft/server
-          sudo mkdir -p /opt/minecraft/logs
-          sudo mkdir -p /opt/minecraft/scripts
-          sudo mkdir -p /opt/backups
-          sudo mkdir -p /opt/minecraft/server/mods
-          sudo mkdir -p /opt/minecraft/server/plugins
-          sudo mkdir -p /opt/minecraft/server/world
-          sudo mkdir -p /opt/minecraft/server/config
-          
-        # Extract new deployment
-        echo "📦 Extracting deployment package..."
-        cd /tmp
-        tar -xzf minestrike-deploy.tar.gz
-        
-        # Deploy server files
-        echo "🚀 Deploying server files..."
-        sudo cp -r minestrike/scripts/ /opt/minecraft/
-        sudo cp -r minestrike/server/ /opt/minecraft/
-        sudo cp -r minestrike/maps/ /opt/minecraft/
-          
-          # Download Paper server
-          echo "📥 Downloading Paper server..."
-          cd /opt/minecraft/server
-          PAPER_VERSION="1.20.4"
-          PAPER_BUILD=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION" | grep -o '"builds":\[[^]]*\]' | grep -o '[0-9]*' | tail -1)
-          DOWNLOAD_URL="https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION/builds/$PAPER_BUILD/downloads/paper-$PAPER_VERSION-$PAPER_BUILD.jar"
-          
-          # Ensure minecraft user can write to the directory
-          sudo chown -R minecraft:minecraft /opt/minecraft/server/
-          sudo -u minecraft curl -L -o server.jar "$DOWNLOAD_URL"
-          
-          # Set ownership
-          echo "🔐 Setting file ownership..."
-          sudo chown -R minecraft:minecraft /opt/minecraft/
-          sudo chown -R minecraft:minecraft /opt/backups/
-          
-        # Setup systemd service
-        echo "⚙️ Setting up systemd service..."
-        sudo cp /tmp/minestrike/scripts/minecraft-server.service /etc/systemd/system/
-          sudo systemctl daemon-reload
-          sudo systemctl enable minecraft-server
-          
-          # Install de_dust2 map as default world
-          echo "🗺️ Installing de_dust2 map as default world..."
-          cd /opt/minecraft
-          if [ -d "maps/custom/de_dust2" ]; then
-            echo "✅ Found de_dust2 map, installing..."
-            sudo ./scripts/install-map.sh maps/custom/de_dust2
-            echo "✅ de_dust2 map installed successfully!"
-            
-            # Ensure server is restarted to pick up changes
-            echo "🔄 Restarting server to apply changes..."
-            sudo systemctl restart minecraft-server
-            sleep 5
-            echo "✅ Server restarted successfully!"
-          else
-            echo "⚠️ de_dust2 map not found, using default world"
-            # Start server if not already running
-            sudo systemctl start minecraft-server
-          fi
-          
-          # Configure firewall
-          echo "🔥 Configuring firewall..."
-          sudo ufw --force enable
-          sudo ufw allow 22/tcp
-          sudo ufw allow 25565/tcp
-          sudo ufw allow 25575/tcp
-          
-          # Check firewall status
-          echo "📊 Firewall status:"
-          sudo ufw status verbose
-          
-          # Check if port is listening
-          echo "🔍 Checking if server is listening on port 25565..."
-          sudo netstat -tlnp | grep 25565 || echo "Port 25565 not listening"
-          
-          # Wait longer for server to fully start
-          echo "⏳ Waiting for server to fully initialize..."
-          sleep 30
-          
-          # Check server status
-          echo "📊 Server status:"
-          sudo systemctl status minecraft-server --no-pager
-          
-          # Ensure server is running
-          if ! sudo systemctl is-active --quiet minecraft-server; then
-            echo "⚠️ Server not running, attempting to start..."
-            sudo systemctl start minecraft-server
-            sleep 10
-          fi
-          
-          # Check server logs for any errors
-          echo "📋 Server logs (last 20 lines):"
-          sudo journalctl -u minecraft-server --no-pager -n 20
-          
-          # Setup automatic elytra distribution
-          echo "🎮 Setting up automatic elytra distribution..."
-          if [ -f "/opt/minecraft/server/world/datapacks/elytra_giver/pack.mcmeta" ]; then
-            echo "✅ Elytra datapack found, enabling..."
-            # Give elytra to all current players
-            echo "give @a elytra 1" | sudo -u minecraft tee -a /opt/minecraft/server/console_input.txt
-            echo "give @a firework_rocket 64" | sudo -u minecraft tee -a /opt/minecraft/server/console_input.txt
-            echo "✅ Elytra auto-give setup complete!"
-          fi
-          
-          # Verify the world is correct
-          echo "🗺️ Verifying world configuration:"
-          echo "Level name: $(cat /opt/minecraft/server/server.properties | grep level-name | cut -d'=' -f2)"
-          echo "World directory: $(ls -la /opt/minecraft/server/world/ | head -5)"
-
-        # Clean up
-        rm -f /tmp/minestrike-deploy.tar.gz
-        rm -rf /tmp/minestrike
-
-          echo "✅ Fresh deployment completed successfully!"
-          echo "🌐 External IP: $(curl -s ifconfig.me)"
-        EOF
-
-    - name: Verify deployment
-      run: |
-        ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
-          echo "🔍 Verifying fresh deployment..."
-
-          # Check if server is running
-          if sudo systemctl is-active --quiet minecraft-server; then
-            echo "✅ Server is running"
-          else
-            echo "❌ Server is not running"
-            sudo systemctl status minecraft-server --no-pager
-            exit 1
-          fi
-          
-          # Test port accessibility
-          if nc -z localhost 25565; then
-            echo "✅ Port 25565 is accessible"
-          else
-            echo "❌ Port 25565 is not accessible"
-            exit 1
-          fi
-          
-          # Show server info
-          echo "📊 Server information:"
-          sudo systemctl status minecraft-server --no-pager -l
-          
-          # Show external IP
-          echo "🌐 External IP: $(curl -s ifconfig.me)"
-          
-          # Show directory structure
-          echo "📁 Directory structure:"
-          ls -la /opt/minecraft/
-          
-          echo "🎮 Minecraft server is ready!"
-        EOF
         
     - name: Notify deployment status
       if: always()
       run: |
         if [ "${{ job.status }}" == "success" ]; then
-          echo "🎉 Deployment successful! Server is running on $EC2_HOST:25565"
+          echo "🎉 Deployment successful!"
+          echo "🌐 Web Panel: http://$EC2_HOST:8000"
+          echo "🎮 Minecraft Server: $EC2_HOST:25565"
+          echo "🔐 Default Login: admin/admin"
+          echo "⚠️ Remember to change the default password!"
         else
           echo "❌ Deployment failed. Check the logs above."
         fi

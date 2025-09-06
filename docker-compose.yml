@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  crafty-controller:
+    image: craftycontroller/crafty-4:latest
+    container_name: crafty-controller
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # Web interface
+      - "25565:25565"  # Minecraft server port
+      - "25575:25575"  # RCON port
+    volumes:
+      - crafty_data:/opt/crafty_controller
+      - minecraft_servers:/opt/crafty_controller/servers
+      - ./backups:/opt/crafty_controller/backups
+      - ./maps:/opt/crafty_controller/maps
+    environment:
+      - TZ=UTC
+    networks:
+      - minecraft-network
+
+  # Optional: Add a reverse proxy for SSL/domain support
+  nginx:
+    image: nginx:alpine
+    container_name: minecraft-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - crafty-controller
+    networks:
+      - minecraft-network
+
+volumes:
+  crafty_data:
+    driver: local
+  minecraft_servers:
+    driver: local
+
+networks:
+  minecraft-network:
+    driver: bridge
