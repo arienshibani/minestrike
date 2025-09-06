@@ -80,6 +80,14 @@ install_docker() {
         sudo apt update
         sudo apt upgrade -y
         
+        # Stop any existing Minecraft services
+        echo "🛑 Stopping any existing Minecraft services..."
+        sudo systemctl stop minecraft-server 2>/dev/null || true
+        sudo systemctl disable minecraft-server 2>/dev/null || true
+        
+        # Kill any processes using port 25565
+        sudo fuser -k 25565/tcp 2>/dev/null || true
+        
         # Install Docker if not present
         if ! command -v docker &> /dev/null; then
             curl -fsSL https://get.docker.com -o get-docker.sh
@@ -123,7 +131,7 @@ setup_firewall() {
         sudo ufw allow 443/tcp
         sudo ufw allow 25565/tcp
         sudo ufw allow 25575/tcp
-        sudo ufw allow 8000/tcp
+        sudo ufw allow 8443/tcp
         echo "Firewall configured"
 EOF
 }
@@ -133,6 +141,19 @@ run_setup() {
     print_status "Running setup on remote server..."
     ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" << 'EOF'
         cd ~/minecraft-server
+        
+        # Stop any existing Docker containers
+        echo "🛑 Stopping any existing Docker containers..."
+        if command -v docker-compose &> /dev/null; then
+            docker-compose down 2>/dev/null || true
+        else
+            docker compose down 2>/dev/null || true
+        fi
+        
+        # Remove any existing containers
+        docker stop mineos 2>/dev/null || true
+        docker rm mineos 2>/dev/null || true
+        
         ./setup.sh
 EOF
 }
