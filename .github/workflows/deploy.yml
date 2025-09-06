@@ -28,20 +28,30 @@ jobs:
     - name: Create deployment package
       run: |
         # Create a deployment package excluding unnecessary files
-        tar -czf minestrike-deploy.tar.gz \
-          --exclude='.git' \
-          --exclude='.github' \
-          --exclude='server/logs' \
-          --exclude='server/cache' \
-          --exclude='server/libraries' \
-          --exclude='server/versions' \
-          --exclude='server/server.jar' \
-          --exclude='logs' \
-          --exclude='*.log' \
-          --exclude='.DS_Store' \
-          --exclude='*.tmp' \
-          --exclude='*.backup' \
-          .
+        # Use a temporary directory to avoid tar including itself
+        mkdir -p /tmp/deploy
+        cp -r . /tmp/deploy/minestrike
+        
+        # Remove unnecessary files from the copy
+        rm -rf /tmp/deploy/minestrike/.git
+        rm -rf /tmp/deploy/minestrike/.github
+        rm -rf /tmp/deploy/minestrike/server/logs
+        rm -rf /tmp/deploy/minestrike/server/cache
+        rm -rf /tmp/deploy/minestrike/server/libraries
+        rm -rf /tmp/deploy/minestrike/server/versions
+        rm -rf /tmp/deploy/minestrike/server/server.jar
+        rm -rf /tmp/deploy/minestrike/logs
+        find /tmp/deploy/minestrike -name "*.log" -delete
+        find /tmp/deploy/minestrike -name ".DS_Store" -delete
+        find /tmp/deploy/minestrike -name "*.tmp" -delete
+        find /tmp/deploy/minestrike -name "*.backup" -delete
+        
+        # Create the tar file
+        cd /tmp/deploy
+        tar -czf minestrike-deploy.tar.gz minestrike/
+        
+        # Move it back to the working directory
+        mv minestrike-deploy.tar.gz $GITHUB_WORKSPACE/
           
     - name: Upload deployment package to EC2
       run: |
