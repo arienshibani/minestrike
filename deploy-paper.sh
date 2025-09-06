@@ -260,11 +260,20 @@ verify_deployment() {
             exit 1
         fi
         
-        # Check if port is listening
-        if nc -z localhost 25565; then
-            echo "✅ Port 25565 is accessible"
+        # Check if port is listening (better method for IPv6)
+        if netstat -tlnp | grep -q ":25565 "; then
+            echo "✅ Port 25565 is listening"
+            netstat -tlnp | grep 25565
         else
-            echo "❌ Port 25565 is not accessible"
+            echo "❌ Port 25565 is not listening"
+            exit 1
+        fi
+        
+        # Test connection using telnet (more reliable)
+        if timeout 5 bash -c "</dev/tcp/localhost/25565" 2>/dev/null; then
+            echo "✅ Port 25565 is accessible locally"
+        else
+            echo "❌ Port 25565 is not accessible locally"
             exit 1
         fi
         
