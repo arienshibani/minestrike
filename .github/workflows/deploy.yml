@@ -1,4 +1,4 @@
-name: Deploy Minecraft Server
+name: Deploy Paper Minecraft Server
 
 on:
   push:
@@ -25,27 +25,29 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
         
-    - name: Deploy to EC2
+    - name: Deploy Paper Server
       run: |
         # Set environment variables for the deployment script
         export EC2_HOST="$EC2_HOST"
         export EC2_USER="$EC2_USER"
         export SSH_PRIVATE_KEY="$SSH_KEY"
         
-        # Run the GitHub Actions deployment script
-        chmod +x deploy-github-actions.sh
-        ./deploy-github-actions.sh
+        # Run the Paper deployment script
+        chmod +x deploy-paper.sh
+        ./deploy-paper.sh
         
-        
-    - name: Notify deployment status
+    - name: Deployment Status
       if: always()
       run: |
         if [ "${{ job.status }}" == "success" ]; then
-          echo "🎉 Deployment successful!"
-          echo "🌐 Web Panel: https://$EC2_HOST:8443"
+          echo "🎉 Paper server deployment successful!"
           echo "🎮 Minecraft Server: $EC2_HOST:25565"
-          echo "🔐 Default Login: mc/mc"
-          echo "⚠️ Remember to change the default password!"
+          echo "🔧 Server Management:"
+          echo "   Start: sudo systemctl start minecraft-server"
+          echo "   Stop: sudo systemctl stop minecraft-server"
+          echo "   Restart: sudo systemctl restart minecraft-server"
+          echo "   Status: sudo systemctl status minecraft-server"
+          echo "   Logs: sudo journalctl -u minecraft-server -f"
         else
-          echo "❌ Deployment failed. Check the logs above."
+          echo "❌ Paper server deployment failed. Check the logs above."
         fi
