@@ -56,11 +56,11 @@ check_os() {
 # Check Java installation
 check_java() {
     print_header "Checking Java Installation"
-    
+
     if command -v java &> /dev/null; then
         JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
         print_status "Java version: $JAVA_VERSION"
-        
+
         if [ "$JAVA_VERSION" -lt 17 ]; then
             print_error "Java 17 or higher is required. Current version: $JAVA_VERSION"
             print_status "Please install Java 17 or higher:"
@@ -183,7 +183,7 @@ setup_directories() {
 # Create startup script
 create_startup_script() {
     print_header "Creating Startup Script"
-    
+lwhen
     cat > "$SCRIPTS_DIR/start-server.sh" << 'EOF'
 #!/bin/bash
 # Quick start script for Minecraft server
@@ -203,7 +203,7 @@ EOF
 # Create port test script
 create_port_test_script() {
     print_header "Creating Port Test Script"
-    
+
     cat > "$SCRIPTS_DIR/test-port.sh" << 'EOF'
 #!/bin/bash
 
@@ -216,7 +216,7 @@ echo "Testing Minecraft server port $PORT on $HOST..."
 # Test if port is open
 if nc -z $HOST $PORT 2>/dev/null; then
     echo "✅ Port $PORT is open and accessible"
-    
+
     # Try to get server info (if server is running)
     echo "Attempting to get server info..."
     timeout 5 nc $HOST $PORT < /dev/null 2>/dev/null && echo "✅ Server is responding" || echo "⚠️  Port is open but server may not be running"
@@ -232,7 +232,7 @@ echo ""
 echo "To test with telnet:"
 echo "telnet $HOST $PORT"
 EOF
-    
+
     chmod +x "$SCRIPTS_DIR/test-port.sh"
     print_status "Created port test script"
 }
@@ -240,7 +240,7 @@ EOF
 # Create mod installation script
 create_mod_script() {
     print_header "Creating Mod Management Script"
-    
+
     cat > "$SCRIPTS_DIR/install-mod.sh" << 'EOF'
 #!/bin/bash
 
@@ -264,13 +264,13 @@ if [[ $MOD_SOURCE == http* ]]; then
     # Download mod
     MOD_NAME=$(basename "$MOD_SOURCE")
     echo "Downloading mod: $MOD_NAME"
-    
+
     if command -v curl &> /dev/null; then
         curl -L -o "$MODS_DIR/$MOD_NAME" "$MOD_SOURCE"
     else
         wget -O "$MODS_DIR/$MOD_NAME" "$MOD_SOURCE"
     fi
-    
+
     if [ -f "$MODS_DIR/$MOD_NAME" ]; then
         echo "✅ Mod downloaded successfully: $MOD_NAME"
     else
@@ -310,9 +310,9 @@ main() {
     create_startup_script
     create_port_test_script
     create_mod_script
-    
+
     print_header "Setup Complete!"
-    
+
     echo ""
     print_status "Next steps:"
     echo "1. Start the server: ./scripts/server.sh start"
