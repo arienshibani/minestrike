@@ -50,7 +50,7 @@ fi
 
 # Check if required files exist
 check_files() {
-    local required_files=("docker-compose.yml" "nginx.conf" "setup.sh" "backup.sh")
+    local required_files=("docker-compose.yml" "setup.sh" "backup.sh")
     
     for file in "${required_files[@]}"; do
         if [ ! -f "$file" ]; then
@@ -78,7 +78,6 @@ deploy_files() {
     
     # Copy files
     scp -i ~/.ssh/id_rsa docker-compose.yml "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
-    scp -i ~/.ssh/id_rsa nginx.conf "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     scp -i ~/.ssh/id_rsa setup.sh "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     scp -i ~/.ssh/id_rsa backup.sh "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     

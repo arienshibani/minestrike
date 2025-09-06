@@ -37,7 +37,7 @@ print_header() {
 
 # Check if required files exist
 check_files() {
-    local required_files=("docker-compose.yml" "setup.sh" "nginx.conf")
+    local required_files=("docker-compose.yml" "setup.sh")
     
     for file in "${required_files[@]}"; do
         if [ ! -f "$file" ]; then
@@ -107,7 +107,6 @@ deploy_files() {
     # Copy files
     scp -i "$SSH_KEY" docker-compose.yml "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     scp -i "$SSH_KEY" setup.sh "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
-    scp -i "$SSH_KEY" nginx.conf "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     scp -i "$SSH_KEY" backup.sh "$SERVER_USER@$SERVER_HOST:~/minecraft-server/"
     
     # Make scripts executable
