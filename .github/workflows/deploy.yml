@@ -152,10 +152,32 @@ jobs:
           sudo ufw allow 25565/tcp
           sudo ufw allow 25575/tcp
           
-          # Wait and check status
-          sleep 10
+          # Check firewall status
+          echo "📊 Firewall status:"
+          sudo ufw status verbose
+          
+          # Check if port is listening
+          echo "🔍 Checking if server is listening on port 25565..."
+          sudo netstat -tlnp | grep 25565 || echo "Port 25565 not listening"
+          
+          # Wait longer for server to fully start
+          echo "⏳ Waiting for server to fully initialize..."
+          sleep 30
+          
+          # Check server status
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
+          
+          # Ensure server is running
+          if ! sudo systemctl is-active --quiet minecraft-server; then
+            echo "⚠️ Server not running, attempting to start..."
+            sudo systemctl start minecraft-server
+            sleep 10
+          fi
+          
+          # Check server logs for any errors
+          echo "📋 Server logs (last 20 lines):"
+          sudo journalctl -u minecraft-server --no-pager -n 20
           
           # Setup automatic elytra distribution
           echo "🎮 Setting up automatic elytra distribution..."
