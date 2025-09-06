@@ -135,8 +135,9 @@ EOF
 deploy_config() {
     print_status "Deploying server configuration..."
     
-    # Copy server.properties
+    # Copy essential server files
     scp -i ~/.ssh/id_rsa server/server.properties "$SERVER_USER@$SERVER_HOST:/opt/minecraft/"
+    scp -i ~/.ssh/id_rsa server/eula.txt "$SERVER_USER@$SERVER_HOST:/opt/minecraft/"
     
     # Copy plugins if they exist
     if [ -d "server/plugins" ] && [ "$(ls -A server/plugins)" ]; then
