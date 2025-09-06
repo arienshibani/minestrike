@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/Users/ari/repos/minestrike"
+PROJECT_DIR="/opt/minecraft"
 SERVER_DIR="$PROJECT_DIR/server"
 SCRIPTS_DIR="$PROJECT_DIR/scripts"
 LOGS_DIR="$PROJECT_DIR/logs"
@@ -188,7 +188,7 @@ create_startup_script() {
 #!/bin/bash
 # Quick start script for Minecraft server
 
-cd /Users/ari/repos/minestrike
+cd /opt/minecraft
 ./scripts/server.sh start
 
 echo "Server started! Use './scripts/server.sh status' to check status"
@@ -255,7 +255,7 @@ if [ $# -eq 0 ]; then
 fi
 
 MOD_SOURCE="$1"
-MODS_DIR="/Users/ari/repos/minestrike/server/mods"
+MODS_DIR="/opt/minecraft/server/mods"
 
 echo "Installing mod from: $MOD_SOURCE"
 

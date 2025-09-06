@@ -13,9 +13,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-MAPS_DIR="/Users/ari/repos/minestrike/maps/custom"
-SERVER_DIR="/Users/ari/repos/minestrike/server"
-BACKUP_DIR="/Users/ari/repos/minestrike/maps/backups"
+MAPS_DIR="/opt/minecraft/maps/custom"
+SERVER_DIR="/opt/minecraft/server"
+BACKUP_DIR="/opt/backups"
 
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"

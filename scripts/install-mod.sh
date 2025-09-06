@@ -11,7 +11,7 @@ if [ $# -eq 0 ]; then
 fi
 
 MOD_SOURCE="$1"
-MODS_DIR="/Users/ari/repos/minestrike/server/mods"
+MODS_DIR="/opt/minecraft/server/mods"
 
 echo "Installing mod from: $MOD_SOURCE"
 

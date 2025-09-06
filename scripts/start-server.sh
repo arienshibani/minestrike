@@ -1,7 +1,7 @@
 #!/bin/bash
 # Quick start script for Minecraft server
 
-cd /Users/ari/repos/minestrike
+cd /opt/minecraft
 ./scripts/server.sh start
 
 echo "Server started! Use './scripts/server.sh status' to check status"
