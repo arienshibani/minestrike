@@ -1,0 +1,6 @@
+# Minecraft eula.txt
+# By changing the setting below to TRUE you are indicating your agreement to our EULA (https://aka.ms/MinecraftEULA).
+# You also agree that Minecraft is licensed as a Commercial Product. By Commercial Product we mean a product that is used for commercial purposes, including, but not limited to, revenue generation, whether in a commercial environment or otherwise, and whether for profit or otherwise.
+# Commercial purposes include, but are not limited to, offering the product for use in a commercial environment, using the product to provide commercial services, and using the product for other revenue-generating purposes.
+# If you are not the owner of this server, you are not allowed to change this setting.
+eula=true

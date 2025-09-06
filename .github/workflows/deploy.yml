@@ -1,0 +1,142 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_USER: ${{ secrets.EC2_USER }}
+  SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+        
+    - name: Create deployment package
+      run: |
+        # Create a deployment package excluding unnecessary files
+        tar -czf minestrike-deploy.tar.gz \
+          --exclude='.git' \
+          --exclude='.github' \
+          --exclude='server/logs' \
+          --exclude='server/cache' \
+          --exclude='server/libraries' \
+          --exclude='server/versions' \
+          --exclude='server/server.jar' \
+          --exclude='logs' \
+          --exclude='*.log' \
+          --exclude='.DS_Store' \
+          --exclude='*.tmp' \
+          --exclude='*.backup' \
+          .
+          
+    - name: Upload deployment package to EC2
+      run: |
+        scp -i ~/.ssh/id_rsa minestrike-deploy.tar.gz $EC2_USER@$EC2_HOST:/tmp/
+        
+    - name: Deploy on EC2
+      run: |
+        ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+          set -e
+          
+          # Create backup of current server
+          if [ -d "/opt/minecraft/server" ]; then
+            echo "Creating backup of current server..."
+            sudo tar -czf /opt/backups/server-backup-$(date +%Y%m%d-%H%M%S).tar.gz /opt/minecraft/server/
+          fi
+          
+          # Stop the server gracefully
+          echo "Stopping Minecraft server..."
+          sudo systemctl stop minecraft-server || true
+          
+          # Extract new deployment
+          echo "Extracting new deployment..."
+          cd /tmp
+          tar -xzf minestrike-deploy.tar.gz
+          
+          # Update server files
+          echo "Updating server files..."
+          sudo cp -r scripts/ /opt/minecraft/
+          sudo cp -r server/ /opt/minecraft/
+          sudo chown -R minecraft:minecraft /opt/minecraft/
+          
+          # Download latest Paper server if needed
+          if [ ! -f "/opt/minecraft/server/server.jar" ]; then
+            echo "Downloading Paper server..."
+            cd /opt/minecraft/server
+            PAPER_VERSION="1.20.4"
+            PAPER_BUILD=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION" | grep -o '"builds":\[[^]]*\]' | grep -o '[0-9]*' | tail -1)
+            DOWNLOAD_URL="https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION/builds/$PAPER_BUILD/downloads/paper-$PAPER_VERSION-$PAPER_BUILD.jar"
+            sudo -u minecraft curl -L -o server.jar "$DOWNLOAD_URL"
+          fi
+          
+          # Update systemd service if changed
+          if [ -f "/tmp/scripts/minecraft-server.service" ]; then
+            echo "Updating systemd service..."
+            sudo cp /tmp/scripts/minecraft-server.service /etc/systemd/system/
+            sudo systemctl daemon-reload
+          fi
+          
+          # Start the server
+          echo "Starting Minecraft server..."
+          sudo systemctl start minecraft-server
+          
+          # Wait a moment and check status
+          sleep 5
+          sudo systemctl status minecraft-server --no-pager
+          
+          # Clean up
+          rm -f /tmp/minestrike-deploy.tar.gz
+          rm -rf /tmp/scripts /tmp/server
+          
+          echo "Deployment completed successfully!"
+        EOF
+        
+    - name: Verify deployment
+      run: |
+        ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+          # Check if server is running
+          if sudo systemctl is-active --quiet minecraft-server; then
+            echo "✅ Server is running"
+          else
+            echo "❌ Server is not running"
+            sudo systemctl status minecraft-server --no-pager
+            exit 1
+          fi
+          
+          # Test port accessibility
+          if nc -z localhost 25565; then
+            echo "✅ Port 25565 is accessible"
+          else
+            echo "❌ Port 25565 is not accessible"
+            exit 1
+          fi
+          
+          # Show server info
+          echo "Server status:"
+          sudo systemctl status minecraft-server --no-pager -l
+          
+          echo "External IP: $(curl -s ifconfig.me)"
+        EOF
+        
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Deployment successful! Server is running on $EC2_HOST:25565"
+        else
+          echo "❌ Deployment failed. Check the logs above."
+        fi
