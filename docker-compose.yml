@@ -1,19 +1,19 @@
 version: '3.8'
 
 services:
-  crafty-controller:
-    image: craftycontroller/crafty-4:latest
-    container_name: crafty-controller
+  mcsmanager:
+    image: mcsmanager/mcsmanager:latest
+    container_name: mcsmanager
     restart: unless-stopped
     ports:
-      - "8000:8000"  # Web interface
+      - "23333:23333"  # Web interface
       - "25565:25565"  # Minecraft server port
       - "25575:25575"  # RCON port
     volumes:
-      - crafty_data:/opt/crafty_controller
-      - minecraft_servers:/opt/crafty_controller/servers
-      - ./backups:/opt/crafty_controller/backups
-      - ./maps:/opt/crafty_controller/maps
+      - mcsmanager_data:/app/data
+      - minecraft_servers:/app/servers
+      - ./backups:/app/backups
+      - ./maps:/app/maps
     environment:
       - TZ=UTC
     networks:
@@ -31,12 +31,12 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
-      - crafty-controller
+      - mcsmanager
     networks:
       - minecraft-network
 
 volumes:
-  crafty_data:
+  mcsmanager_data:
     driver: local
   minecraft_servers:
     driver: local

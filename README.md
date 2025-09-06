@@ -1,6 +1,6 @@
 # 🎮 Modern Minecraft Server Management
 
-A clean, modern solution for managing Minecraft servers with **Crafty Controller** - a web-based management panel that makes server administration easy and intuitive.
+A clean, modern solution for managing Minecraft servers with **MCSManager** - a web-based management panel that makes server administration easy and intuitive.
 
 ## ✨ **What You Get**
 
@@ -33,7 +33,7 @@ cd minecraft-server
 # Start the server management panel
 ./setup.sh
 
-# Access at http://localhost:8000
+# Access at http://localhost:23333
 # Default login: admin/admin
 ```
 
@@ -147,7 +147,7 @@ ls -la backups/
 
 ## 🌐 **Access Points**
 
-- **Web Panel**: `http://your-server:8000`
+- **Web Panel**: `http://your-server:23333`
 - **Minecraft Server**: `your-server:25565`
 - **RCON**: `your-server:25575`
 
@@ -171,14 +171,14 @@ The deployment script automatically configures UFW with:
 - Port 443 (HTTPS)
 - Port 25565 (Minecraft)
 - Port 25575 (RCON)
-- Port 8000 (Web Panel)
+- Port 23333 (Web Panel)
 
 ## 📊 **Monitoring & Logs**
 
 ### **Server Logs**
 ```bash
-# View Crafty Controller logs
-docker-compose logs -f crafty-controller
+# View MCSManager logs
+docker-compose logs -f mcsmanager
 
 # View Minecraft server logs (through web panel)
 # Or via file manager in web interface
@@ -233,10 +233,13 @@ netstat -tlnp | grep 25565
 **Can't access web panel:**
 ```bash
 # Check if service is running
-docker ps | grep crafty-controller
+docker ps | grep mcsmanager
 
 # Check firewall
 sudo ufw status
+
+# Check if port is listening
+sudo netstat -tlnp | grep 23333
 ```
 
 **Backup issues:**
@@ -274,7 +277,7 @@ sudo rm -rf backups/ maps/
 
 ## 🔄 **Updates & Maintenance**
 
-### **Update Crafty Controller**
+### **Update MCSManager**
 ```bash
 docker-compose pull
 docker-compose up -d
@@ -297,11 +300,11 @@ sudo apt install docker-ce docker-ce-cli containerd.io
 ## 🆘 **Support**
 
 ### **Documentation**
-- [Crafty Controller Docs](https://craftycontrol.com/docs)
+- [MCSManager Docs](https://mcsmanager.com/docs)
 - [Docker Compose Reference](https://docs.docker.com/compose/)
 
 ### **Community**
-- [Crafty Controller Discord](https://discord.gg/crafty)
+- [MCSManager Discord](https://discord.gg/mcsmanager)
 - [Minecraft Server Admin Forums](https://www.spigotmc.org/)
 
 ---

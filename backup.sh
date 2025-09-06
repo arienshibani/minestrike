@@ -33,17 +33,17 @@ mkdir -p "$BACKUP_DIR"
 
 print_status "Starting backup process..."
 
-# Check if Crafty Controller is running
-if ! docker ps | grep -q crafty-controller; then
-    print_error "Crafty Controller is not running. Please start it first with: docker-compose up -d"
+# Check if MCSManager is running
+if ! docker ps | grep -q mcsmanager; then
+    print_error "MCSManager is not running. Please start it first with: docker-compose up -d"
     exit 1
 fi
 
 # Create backup of all server data
 print_status "Creating backup: minecraft_backup_$TIMESTAMP.tar.gz"
-docker exec crafty-controller tar -czf /tmp/minecraft_backup_$TIMESTAMP.tar.gz -C /opt/crafty_controller/servers .
-docker cp crafty-controller:/tmp/minecraft_backup_$TIMESTAMP.tar.gz "$BACKUP_DIR/"
-docker exec crafty-controller rm /tmp/minecraft_backup_$TIMESTAMP.tar.gz
+docker exec mcsmanager tar -czf /tmp/minecraft_backup_$TIMESTAMP.tar.gz -C /app/servers .
+docker cp mcsmanager:/tmp/minecraft_backup_$TIMESTAMP.tar.gz "$BACKUP_DIR/"
+docker exec mcsmanager rm /tmp/minecraft_backup_$TIMESTAMP.tar.gz
 
 # Get backup size
 BACKUP_SIZE=$(du -h "$BACKUP_DIR/minecraft_backup_$TIMESTAMP.tar.gz" | cut -f1)

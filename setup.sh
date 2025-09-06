@@ -72,7 +72,7 @@ if [ ! -f "docker-compose.yml" ]; then
 fi
 
 # Start the services
-print_status "Starting Crafty Controller..."
+print_status "Starting MCSManager..."
 if command -v docker-compose &> /dev/null; then
     docker-compose up -d
 else
@@ -81,13 +81,13 @@ fi
 
 # Wait for services to start
 print_status "Waiting for services to start..."
-sleep 10
+sleep 15
 
 # Check if services are running
-if docker ps | grep -q crafty-controller; then
-    print_status "✅ Crafty Controller is running!"
+if docker ps | grep -q mcsmanager; then
+    print_status "✅ MCSManager is running!"
 else
-    print_error "❌ Crafty Controller failed to start. Check logs with: docker-compose logs"
+    print_error "❌ MCSManager failed to start. Check logs with: docker-compose logs"
     exit 1
 fi
 
@@ -96,9 +96,9 @@ SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || echo "localhost")
 
 print_header "Setup Complete! 🎉"
 echo ""
-echo "🌐 Access Crafty Controller at:"
-echo "   Local: http://localhost:8000"
-echo "   External: http://$SERVER_IP:8000"
+echo "🌐 Access MCSManager at:"
+echo "   Local: http://localhost:23333"
+echo "   External: http://$SERVER_IP:23333"
 echo ""
 echo "🎮 Default login credentials:"
 echo "   Username: admin"
@@ -107,7 +107,7 @@ echo ""
 echo "⚠️  IMPORTANT: Change the default password after first login!"
 echo ""
 echo "📋 Next steps:"
-echo "   1. Open http://$SERVER_IP:8000 in your browser"
+echo "   1. Open http://$SERVER_IP:23333 in your browser"
 echo "   2. Login with admin/admin"
 echo "   3. Change the admin password"
 echo "   4. Create your first Minecraft server"

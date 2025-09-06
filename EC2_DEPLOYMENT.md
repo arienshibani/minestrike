@@ -20,7 +20,7 @@ Configure your EC2 security group to allow these ports:
 | 443 | TCP | 0.0.0.0/0 | HTTPS (web panel) |
 | 25565 | TCP | 0.0.0.0/0 | Minecraft server |
 | 25575 | TCP | Your IP | RCON (admin) |
-| 8000 | TCP | Your IP | Direct web panel access |
+| 23333 | TCP | Your IP | Direct web panel access |
 
 ## 🚀 **Deployment Options**
 
@@ -88,7 +88,7 @@ The script will:
 
 After deployment completes (either method), you can access:
 
-- **Web Management Panel**: `http://YOUR_EC2_IP:8000`
+- **Web Management Panel**: `http://YOUR_EC2_IP:23333`
 - **Minecraft Server**: `YOUR_EC2_IP:25565`
 
 ### **Default Login Credentials**
@@ -100,7 +100,7 @@ After deployment completes (either method), you can access:
 ## 🔧 **Post-Deployment Setup**
 
 ### **1. Change Admin Password**
-1. Open `http://YOUR_EC2_IP:8000`
+1. Open `http://YOUR_EC2_IP:23333`
 2. Login with `admin/admin`
 3. Go to Settings → Users
 4. Change the admin password

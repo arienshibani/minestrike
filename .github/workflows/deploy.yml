@@ -42,7 +42,7 @@ jobs:
       run: |
         if [ "${{ job.status }}" == "success" ]; then
           echo "🎉 Deployment successful!"
-          echo "🌐 Web Panel: http://$EC2_HOST:8000"
+          echo "🌐 Web Panel: http://$EC2_HOST:23333"
           echo "🎮 Minecraft Server: $EC2_HOST:25565"
           echo "🔐 Default Login: admin/admin"
           echo "⚠️ Remember to change the default password!"
