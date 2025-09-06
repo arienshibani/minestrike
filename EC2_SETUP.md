@@ -1,55 +1,50 @@
-# EC2 Initial Setup Commands
+# EC2 Setup - GitHub Actions Handles Everything!
 
-## Step 1: Upload the setup script to your EC2 instance
+## 🚀 **Automatic Fresh Deployment**
 
-Replace `YOUR_EC2_IP` and `YOUR_KEY.pem` with your actual values:
+The GitHub Actions workflow now **automatically handles fresh EC2 instances**! No manual setup required.
 
-```bash
-# Upload the deployment script
-scp -i YOUR_KEY.pem scripts/deploy-ec2.sh ubuntu@YOUR_EC2_IP:~/
-scp -i YOUR_KEY.pem scripts/minecraft-server.service ubuntu@YOUR_EC2_IP:~/
-```
+### ✅ **What GitHub Actions Does Automatically:**
 
-## Step 2: SSH into your EC2 instance
+1. **📦 Updates system packages** (apt update/upgrade)
+2. **☕ Installs Java 17** (if not present)
+3. **👤 Creates minecraft user** (if not exists)
+4. **📁 Creates directory structure** (/opt/minecraft/, etc.)
+5. **📥 Downloads Paper server** (latest build)
+6. **⚙️ Sets up systemd service** (auto-start on boot)
+7. **🔥 Configures firewall** (ports 22, 25565, 25575)
+8. **🎮 Starts Minecraft server** with your de_dust2 map
+9. **🔍 Verifies deployment** (checks status, ports, etc.)
 
-```bash
-ssh -i YOUR_KEY.pem ubuntu@YOUR_EC2_IP
-```
+### 🎯 **All You Need:**
 
-## Step 3: Run the initial setup
+1. **EC2 instance running** (Ubuntu 20.04+)
+2. **Security group configured** (ports 22, 25565, 25575)
+3. **GitHub Secrets set** (EC2_HOST, EC2_USER, SSH_PRIVATE_KEY)
+4. **Push to main branch** → Automatic deployment!
 
-Once you're SSH'd into the EC2 instance:
+### 🚫 **No Manual Setup Required:**
 
-```bash
-# Make the script executable
-chmod +x deploy-ec2.sh
+- ❌ No need to upload scripts manually
+- ❌ No need to SSH and run setup commands
+- ❌ No need to configure anything manually
+- ✅ **Just push to GitHub and it works!**
 
-# Run the setup (this will take a few minutes)
-sudo ./deploy-ec2.sh
-```
+### 🔄 **How It Works:**
 
-## Step 4: Verify the setup
+1. **Push to main branch** triggers GitHub Actions
+2. **Creates deployment package** (excludes unnecessary files)
+3. **Uploads to EC2** via SSH
+4. **Runs fresh deployment** (handles everything automatically)
+5. **Verifies deployment** and reports status
+6. **Your de_dust2 server is live!**
 
-After the setup completes:
+### 🎮 **Ready to Deploy:**
 
-```bash
-# Check if the service is running
-sudo systemctl status minecraft-server
+Your next push to the main branch will automatically:
+- Set up the entire EC2 instance from scratch
+- Deploy your de_dust2 map
+- Start the Minecraft server
+- Make it accessible to players
 
-# Check if the server is accessible
-sudo -u minecraft /opt/minecraft/scripts/test-port.sh
-```
-
-## Step 5: Test GitHub Actions deployment
-
-Once the initial setup is complete, push a small change to trigger the GitHub Actions:
-
-```bash
-# Make a small change locally
-echo "# Test deployment" >> README.md
-git add README.md
-git commit -m "Test EC2 deployment"
-git push
-```
-
-The GitHub Actions should now work properly!
+**No manual intervention needed!** 🚀

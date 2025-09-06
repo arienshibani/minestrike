@@ -62,71 +62,95 @@ jobs:
         ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
           set -e
           
-          # Check if minecraft user exists (indicates initial setup)
+          echo "🚀 Starting fresh EC2 deployment..."
+          
+          # Update system packages
+          echo "📦 Updating system packages..."
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y curl wget screen netcat-openbsd unzip
+          
+          # Install Java 17 if not present
+          echo "☕ Installing Java 17..."
+          if ! java -version 2>&1 | grep -q "17\|18\|19\|20\|21\|22"; then
+            sudo apt install -y openjdk-17-jdk
+          fi
+          
+          # Create minecraft user if not exists
+          echo "👤 Creating minecraft user..."
           if ! id minecraft &>/dev/null; then
-            echo "❌ EC2 instance not set up yet!"
-            echo "Please run the initial setup first:"
-            echo "1. Upload scripts/deploy-ec2.sh to EC2"
-            echo "2. SSH into EC2 and run: sudo ./deploy-ec2.sh"
-            exit 1
+            sudo useradd -r -s /bin/bash -d /opt/minecraft minecraft
           fi
           
-          # Create backup of current server
-          if [ -d "/opt/minecraft/server" ]; then
-            echo "Creating backup of current server..."
-            sudo tar -czf /opt/backups/server-backup-$(date +%Y%m%d-%H%M%S).tar.gz /opt/minecraft/server/
-          fi
-          
-          # Stop the server gracefully
-          echo "Stopping Minecraft server..."
-          sudo systemctl stop minecraft-server || true
+          # Create directory structure
+          echo "📁 Creating directory structure..."
+          sudo mkdir -p /opt/minecraft/server
+          sudo mkdir -p /opt/minecraft/logs
+          sudo mkdir -p /opt/minecraft/scripts
+          sudo mkdir -p /opt/backups
+          sudo mkdir -p /opt/minecraft/server/mods
+          sudo mkdir -p /opt/minecraft/server/plugins
+          sudo mkdir -p /opt/minecraft/server/world
+          sudo mkdir -p /opt/minecraft/server/config
           
           # Extract new deployment
-          echo "Extracting new deployment..."
+          echo "📦 Extracting deployment package..."
           cd /tmp
           tar -xzf minestrike-deploy.tar.gz
           
-          # Update server files
-          echo "Updating server files..."
+          # Deploy server files
+          echo "🚀 Deploying server files..."
           sudo cp -r scripts/ /opt/minecraft/
           sudo cp -r server/ /opt/minecraft/
+          
+          # Download Paper server
+          echo "📥 Downloading Paper server..."
+          cd /opt/minecraft/server
+          PAPER_VERSION="1.20.4"
+          PAPER_BUILD=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION" | grep -o '"builds":\[[^]]*\]' | grep -o '[0-9]*' | tail -1)
+          DOWNLOAD_URL="https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION/builds/$PAPER_BUILD/downloads/paper-$PAPER_VERSION-$PAPER_BUILD.jar"
+          sudo -u minecraft curl -L -o server.jar "$DOWNLOAD_URL"
+          
+          # Set ownership
+          echo "🔐 Setting file ownership..."
           sudo chown -R minecraft:minecraft /opt/minecraft/
+          sudo chown -R minecraft:minecraft /opt/backups/
           
-          # Download latest Paper server if needed
-          if [ ! -f "/opt/minecraft/server/server.jar" ]; then
-            echo "Downloading Paper server..."
-            cd /opt/minecraft/server
-            PAPER_VERSION="1.20.4"
-            PAPER_BUILD=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION" | grep -o '"builds":\[[^]]*\]' | grep -o '[0-9]*' | tail -1)
-            DOWNLOAD_URL="https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION/builds/$PAPER_BUILD/downloads/paper-$PAPER_VERSION-$PAPER_BUILD.jar"
-            sudo -u minecraft curl -L -o server.jar "$DOWNLOAD_URL"
-          fi
+          # Setup systemd service
+          echo "⚙️ Setting up systemd service..."
+          sudo cp /tmp/scripts/minecraft-server.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable minecraft-server
           
-          # Update systemd service if changed
-          if [ -f "/tmp/scripts/minecraft-server.service" ]; then
-            echo "Updating systemd service..."
-            sudo cp /tmp/scripts/minecraft-server.service /etc/systemd/system/
-            sudo systemctl daemon-reload
-          fi
+          # Configure firewall
+          echo "🔥 Configuring firewall..."
+          sudo ufw --force enable
+          sudo ufw allow 22/tcp
+          sudo ufw allow 25565/tcp
+          sudo ufw allow 25575/tcp
           
           # Start the server
-          echo "Starting Minecraft server..."
+          echo "🎮 Starting Minecraft server..."
           sudo systemctl start minecraft-server
           
-          # Wait a moment and check status
-          sleep 5
+          # Wait and check status
+          sleep 10
+          echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
           
           # Clean up
           rm -f /tmp/minestrike-deploy.tar.gz
           rm -rf /tmp/scripts /tmp/server
           
-          echo "Deployment completed successfully!"
+          echo "✅ Fresh deployment completed successfully!"
+          echo "🌐 External IP: $(curl -s ifconfig.me)"
         EOF
         
     - name: Verify deployment
       run: |
         ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+          echo "🔍 Verifying fresh deployment..."
+          
           # Check if server is running
           if sudo systemctl is-active --quiet minecraft-server; then
             echo "✅ Server is running"
@@ -145,10 +169,17 @@ jobs:
           fi
           
           # Show server info
-          echo "Server status:"
+          echo "📊 Server information:"
           sudo systemctl status minecraft-server --no-pager -l
           
-          echo "External IP: $(curl -s ifconfig.me)"
+          # Show external IP
+          echo "🌐 External IP: $(curl -s ifconfig.me)"
+          
+          # Show directory structure
+          echo "📁 Directory structure:"
+          ls -la /opt/minecraft/
+          
+          echo "🎮 Minecraft server is ready!"
         EOF
         
     - name: Notify deployment status
