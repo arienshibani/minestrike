@@ -93,15 +93,21 @@ jobs:
           sudo mkdir -p /opt/minecraft/server/world
           sudo mkdir -p /opt/minecraft/server/config
           
-          # Extract new deployment
-          echo "📦 Extracting deployment package..."
-          cd /tmp
-          tar -xzf minestrike-deploy.tar.gz
-          
-          # Deploy server files
-          echo "🚀 Deploying server files..."
-          sudo cp -r scripts/ /opt/minecraft/
-          sudo cp -r server/ /opt/minecraft/
+        # Extract new deployment
+        echo "📦 Extracting deployment package..."
+        cd /tmp
+        tar -xzf minestrike-deploy.tar.gz
+        
+        # Debug: List what was extracted
+        echo "🔍 Debug: Contents of extracted package:"
+        ls -la minestrike/
+        echo "🔍 Debug: Contents of scripts directory:"
+        ls -la minestrike/scripts/ || echo "❌ scripts directory not found!"
+        
+        # Deploy server files
+        echo "🚀 Deploying server files..."
+        sudo cp -r minestrike/scripts/ /opt/minecraft/
+        sudo cp -r minestrike/server/ /opt/minecraft/
           
           # Download Paper server
           echo "📥 Downloading Paper server..."
@@ -137,20 +143,20 @@ jobs:
           sleep 10
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
-          
+
           # Clean up
           rm -f /tmp/minestrike-deploy.tar.gz
           rm -rf /tmp/scripts /tmp/server
-          
+
           echo "✅ Fresh deployment completed successfully!"
           echo "🌐 External IP: $(curl -s ifconfig.me)"
         EOF
-        
+
     - name: Verify deployment
       run: |
         ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
           echo "🔍 Verifying fresh deployment..."
-          
+
           # Check if server is running
           if sudo systemctl is-active --quiet minecraft-server; then
             echo "✅ Server is running"
