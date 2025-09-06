@@ -122,9 +122,9 @@ jobs:
           sudo chown -R minecraft:minecraft /opt/minecraft/
           sudo chown -R minecraft:minecraft /opt/backups/
           
-          # Setup systemd service
-          echo "⚙️ Setting up systemd service..."
-          sudo cp /tmp/scripts/minecraft-server.service /etc/systemd/system/
+        # Setup systemd service
+        echo "⚙️ Setting up systemd service..."
+        sudo cp /tmp/minestrike/scripts/minecraft-server.service /etc/systemd/system/
           sudo systemctl daemon-reload
           sudo systemctl enable minecraft-server
           
@@ -144,9 +144,9 @@ jobs:
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
 
-          # Clean up
-          rm -f /tmp/minestrike-deploy.tar.gz
-          rm -rf /tmp/scripts /tmp/server
+        # Clean up
+        rm -f /tmp/minestrike-deploy.tar.gz
+        rm -rf /tmp/minestrike
 
           echo "✅ Fresh deployment completed successfully!"
           echo "🌐 External IP: $(curl -s ifconfig.me)"
