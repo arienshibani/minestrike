@@ -98,16 +98,11 @@ jobs:
         cd /tmp
         tar -xzf minestrike-deploy.tar.gz
         
-        # Debug: List what was extracted
-        echo "🔍 Debug: Contents of extracted package:"
-        ls -la minestrike/
-        echo "🔍 Debug: Contents of scripts directory:"
-        ls -la minestrike/scripts/ || echo "❌ scripts directory not found!"
-        
         # Deploy server files
         echo "🚀 Deploying server files..."
         sudo cp -r minestrike/scripts/ /opt/minecraft/
         sudo cp -r minestrike/server/ /opt/minecraft/
+        sudo cp -r minestrike/maps/ /opt/minecraft/
           
           # Download Paper server
           echo "📥 Downloading Paper server..."
@@ -128,6 +123,17 @@ jobs:
           sudo systemctl daemon-reload
           sudo systemctl enable minecraft-server
           
+          # Install de_dust2 map as default world
+          echo "🗺️ Installing de_dust2 map as default world..."
+          cd /opt/minecraft
+          if [ -d "maps/custom/de_dust2" ]; then
+            echo "✅ Found de_dust2 map, installing..."
+            sudo ./scripts/install-map.sh maps/custom/de_dust2
+            echo "✅ de_dust2 map installed successfully!"
+          else
+            echo "⚠️ de_dust2 map not found, using default world"
+          fi
+          
           # Configure firewall
           echo "🔥 Configuring firewall..."
           sudo ufw --force enable
@@ -135,11 +141,7 @@ jobs:
           sudo ufw allow 25565/tcp
           sudo ufw allow 25575/tcp
           
-          # Start the server
-          echo "🎮 Starting Minecraft server..."
-          sudo systemctl start minecraft-server
-          
-          # Wait and check status
+          # Wait and check status (server should already be running from install-map)
           sleep 10
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
