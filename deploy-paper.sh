@@ -66,12 +66,31 @@ stop_server() {
         # Stop systemd service
         sudo systemctl stop minecraft-server 2>/dev/null || true
         
-        # Kill any running Java processes (Minecraft servers)
-        sudo pkill -f "java.*minecraft" 2>/dev/null || true
-        sudo pkill -f "java.*paper" 2>/dev/null || true
+        # Kill any running Java processes (Minecraft servers) with force
+        sudo pkill -9 -f "java.*minecraft" 2>/dev/null || true
+        sudo pkill -9 -f "java.*paper" 2>/dev/null || true
+        sudo pkill -9 -f "java.*server" 2>/dev/null || true
+        
+        # Force kill any processes using port 25565
+        sudo fuser -k 25565/tcp 2>/dev/null || true
+        
+        # Clean up any leftover log files that might cause permission issues
+        sudo rm -rf /opt/minecraft/logs/latest.log 2>/dev/null || true
+        sudo rm -rf /opt/minecraft/crash-reports/* 2>/dev/null || true
         
         # Wait for processes to stop
-        sleep 5
+        sleep 15
+        
+        # Verify port is free
+        if netstat -tlnp | grep -q ":25565 "; then
+            echo "Warning: Port 25565 still in use"
+            sudo netstat -tlnp | grep 25565
+            # Try one more time to kill
+            sudo fuser -k 25565/tcp 2>/dev/null || true
+            sleep 5
+        else
+            echo "Port 25565 is now free"
+        fi
         
         echo "Server stopped"
 EOF
@@ -105,12 +124,21 @@ setup_directories() {
         sudo mkdir -p /opt/minecraft
         sudo chown ubuntu:ubuntu /opt/minecraft
         
-        # Create subdirectories
+        # Create subdirectories with proper permissions
         mkdir -p /opt/minecraft/plugins
         mkdir -p /opt/minecraft/worlds
         mkdir -p /opt/minecraft/logs
+        mkdir -p /opt/minecraft/crash-reports
         
-        echo "Directories created"
+        # Ensure proper ownership
+        sudo chown -R ubuntu:ubuntu /opt/minecraft
+        
+        # Set proper permissions
+        chmod 755 /opt/minecraft
+        chmod 755 /opt/minecraft/logs
+        chmod 755 /opt/minecraft/crash-reports
+        
+        echo "Directories created with proper permissions"
 EOF
 }
 
