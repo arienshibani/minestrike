@@ -46,8 +46,10 @@ show_menu() {
     echo "6. View server logs"
     echo "7. Test port accessibility"
     echo "8. Install mod"
-    echo "9. Attach to server console"
-    echo "10. Show server info"
+    echo "9. Install custom map"
+    echo "10. Manage maps"
+    echo "11. Attach to server console"
+    echo "12. Show server info"
     echo "0. Exit"
     echo ""
 }
@@ -123,6 +125,56 @@ install_mod() {
     else
         print_error "No mod path provided"
     fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# Install custom map
+install_custom_map() {
+    print_header "Install Custom Map"
+    echo "Enter the path to your map zip file:"
+    read -p "> " map_path
+    
+    if [ -n "$map_path" ]; then
+        "$PROJECT_DIR/scripts/install-map.sh" "$map_path"
+    else
+        print_error "No map path provided"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# Manage maps
+manage_maps() {
+    print_header "Map Management"
+    echo "1. List maps and backups"
+    echo "2. Create backup of current world"
+    echo "3. Restore world from backup"
+    echo "4. Show world information"
+    echo "0. Back to main menu"
+    echo ""
+    read -p "Select option: " choice
+    
+    case $choice in
+        1)
+            "$PROJECT_DIR/scripts/manage-maps.sh" list
+            ;;
+        2)
+            "$PROJECT_DIR/scripts/manage-maps.sh" backup
+            ;;
+        3)
+            "$PROJECT_DIR/scripts/manage-maps.sh" restore
+            ;;
+        4)
+            "$PROJECT_DIR/scripts/manage-maps.sh" info
+            ;;
+        0)
+            return
+            ;;
+        *)
+            print_error "Invalid option"
+            ;;
+    esac
     
     read -p "Press Enter to continue..."
 }
@@ -209,9 +261,15 @@ main() {
                 install_mod
                 ;;
             9)
-                attach_console
+                install_custom_map
                 ;;
             10)
+                manage_maps
+                ;;
+            11)
+                attach_console
+                ;;
+            12)
                 show_info
                 ;;
             0)
