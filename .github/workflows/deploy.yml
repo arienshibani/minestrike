@@ -110,6 +110,9 @@ jobs:
           PAPER_VERSION="1.20.4"
           PAPER_BUILD=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION" | grep -o '"builds":\[[^]]*\]' | grep -o '[0-9]*' | tail -1)
           DOWNLOAD_URL="https://api.papermc.io/v2/projects/paper/versions/$PAPER_VERSION/builds/$PAPER_BUILD/downloads/paper-$PAPER_VERSION-$PAPER_BUILD.jar"
+          
+          # Ensure minecraft user can write to the directory
+          sudo chown -R minecraft:minecraft /opt/minecraft/server/
           sudo -u minecraft curl -L -o server.jar "$DOWNLOAD_URL"
           
           # Set ownership
