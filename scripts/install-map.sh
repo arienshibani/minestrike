@@ -208,8 +208,14 @@ main() {
     
     print_header "Installing Custom Map: $map_name"
     
-    check_input "$input_path"
-    extract_map "$input_path" "$map_name"
+    # Check input type and proceed accordingly
+    if check_input "$input_path"; then
+        # It's a zip file
+        extract_map "$input_path" "$map_name"
+    else
+        # It's a directory
+        extract_map "$input_path" "$map_name"
+    fi
     backup_current_world
     install_map "$map_name"
     update_server_properties "$map_name"
