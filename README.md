@@ -1,6 +1,6 @@
 # 🎮 Modern Minecraft Server Management
 
-A clean, modern solution for managing Minecraft servers with **MCSManager** - a web-based management panel that makes server administration easy and intuitive.
+A clean, modern solution for managing Minecraft servers with **MineOS** - a web-based management panel that makes server administration easy and intuitive.
 
 ## ✨ **What You Get**
 
@@ -33,8 +33,8 @@ cd minecraft-server
 # Start the server management panel
 ./setup.sh
 
-# Access at http://localhost:23333
-# Default login: admin/admin
+# Access at https://localhost:8443
+# Default login: mc/mc
 ```
 
 ### **Manual EC2 Deployment**
@@ -51,7 +51,6 @@ cd minecraft-server
 ```
 minecraft-server/
 ├── docker-compose.yml    # Docker services configuration
-├── nginx.conf           # Reverse proxy configuration
 ├── setup.sh            # Local setup script
 ├── deploy.sh           # Manual EC2 deployment script
 ├── deploy-github-actions.sh # GitHub Actions deployment script
@@ -147,14 +146,14 @@ ls -la backups/
 
 ## 🌐 **Access Points**
 
-- **Web Panel**: `http://your-server:23333`
+- **Web Panel**: `https://your-server:8443`
 - **Minecraft Server**: `your-server:25565`
 - **RCON**: `your-server:25575`
 
 ## 🔐 **Security Setup**
 
 ### **Change Default Password**
-1. Login to web panel with `admin/admin`
+1. Login to web panel with `mc/mc`
 2. Go to Settings → Users
 3. Change admin password
 4. Create additional users as needed
@@ -171,14 +170,14 @@ The deployment script automatically configures UFW with:
 - Port 443 (HTTPS)
 - Port 25565 (Minecraft)
 - Port 25575 (RCON)
-- Port 23333 (Web Panel)
+- Port 8443 (Web Panel)
 
 ## 📊 **Monitoring & Logs**
 
 ### **Server Logs**
 ```bash
-# View MCSManager logs
-docker-compose logs -f mcsmanager
+# View MineOS logs
+docker compose logs -f mineos
 
 # View Minecraft server logs (through web panel)
 # Or via file manager in web interface
@@ -233,13 +232,13 @@ netstat -tlnp | grep 25565
 **Can't access web panel:**
 ```bash
 # Check if service is running
-docker ps | grep mcsmanager
+docker ps | grep mineos
 
 # Check firewall
 sudo ufw status
 
 # Check if port is listening
-sudo netstat -tlnp | grep 23333
+sudo netstat -tlnp | grep 8443
 ```
 
 **Backup issues:**
@@ -277,10 +276,10 @@ sudo rm -rf backups/ maps/
 
 ## 🔄 **Updates & Maintenance**
 
-### **Update MCSManager**
+### **Update MineOS**
 ```bash
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```
 
 ### **Update Minecraft Server**
@@ -300,11 +299,11 @@ sudo apt install docker-ce docker-ce-cli containerd.io
 ## 🆘 **Support**
 
 ### **Documentation**
-- [MCSManager Docs](https://mcsmanager.com/docs)
+- [MineOS Docs](https://mineos.net/docs)
 - [Docker Compose Reference](https://docs.docker.com/compose/)
 
 ### **Community**
-- [MCSManager Discord](https://discord.gg/mcsmanager)
+- [MineOS Discord](https://discord.gg/mineos)
 - [Minecraft Server Admin Forums](https://www.spigotmc.org/)
 
 ---

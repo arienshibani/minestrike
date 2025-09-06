@@ -1,44 +1,23 @@
-version: '3.8'
-
 services:
-  mcsmanager:
-    image: mcsmanager/mcsmanager:latest
-    container_name: mcsmanager
+  mineos:
+    image: hexparrot/mineos:latest
+    container_name: mineos
     restart: unless-stopped
     ports:
-      - "23333:23333"  # Web interface
+      - "8443:8443"  # Web interface
       - "25565:25565"  # Minecraft server port
       - "25575:25575"  # RCON port
     volumes:
-      - mcsmanager_data:/app/data
-      - minecraft_servers:/app/servers
-      - ./backups:/app/backups
-      - ./maps:/app/maps
+      - mineos_data:/var/games/minecraft
+      - ./backups:/var/games/minecraft/backups
+      - ./maps:/var/games/minecraft/maps
     environment:
       - TZ=UTC
     networks:
       - minecraft-network
 
-  # Optional: Add a reverse proxy for SSL/domain support
-  nginx:
-    image: nginx:alpine
-    container_name: minecraft-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - mcsmanager
-    networks:
-      - minecraft-network
-
 volumes:
-  mcsmanager_data:
-    driver: local
-  minecraft_servers:
+  mineos_data:
     driver: local
 
 networks:

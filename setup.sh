@@ -72,7 +72,7 @@ if [ ! -f "docker-compose.yml" ]; then
 fi
 
 # Start the services
-print_status "Starting MCSManager..."
+print_status "Starting MineOS..."
 if command -v docker-compose &> /dev/null; then
     docker-compose up -d
 else
@@ -84,10 +84,10 @@ print_status "Waiting for services to start..."
 sleep 15
 
 # Check if services are running
-if docker ps | grep -q mcsmanager; then
-    print_status "✅ MCSManager is running!"
+if docker ps | grep -q mineos; then
+    print_status "✅ MineOS is running!"
 else
-    print_error "❌ MCSManager failed to start. Check logs with: docker-compose logs"
+    print_error "❌ MineOS failed to start. Check logs with: docker compose logs"
     exit 1
 fi
 
@@ -96,27 +96,27 @@ SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || echo "localhost")
 
 print_header "Setup Complete! 🎉"
 echo ""
-echo "🌐 Access MCSManager at:"
-echo "   Local: http://localhost:23333"
-echo "   External: http://$SERVER_IP:23333"
+echo "🌐 Access MineOS at:"
+echo "   Local: https://localhost:8443"
+echo "   External: https://$SERVER_IP:8443"
 echo ""
 echo "🎮 Default login credentials:"
-echo "   Username: admin"
-echo "   Password: admin"
+echo "   Username: mc"
+echo "   Password: mc"
 echo ""
 echo "⚠️  IMPORTANT: Change the default password after first login!"
 echo ""
 echo "📋 Next steps:"
-echo "   1. Open http://$SERVER_IP:23333 in your browser"
-echo "   2. Login with admin/admin"
+echo "   1. Open https://$SERVER_IP:8443 in your browser"
+echo "   2. Login with mc/mc"
 echo "   3. Change the admin password"
 echo "   4. Create your first Minecraft server"
 echo "   5. Upload your custom world (de_dust2) through the web interface"
 echo ""
 echo "🔧 Management commands:"
-echo "   Start: docker-compose up -d"
-echo "   Stop: docker-compose down"
-echo "   Logs: docker-compose logs -f"
-echo "   Restart: docker-compose restart"
+echo "   Start: docker compose up -d"
+echo "   Stop: docker compose down"
+echo "   Logs: docker compose logs -f"
+echo "   Restart: docker compose restart"
 echo ""
 print_status "Setup completed successfully!"

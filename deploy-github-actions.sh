@@ -121,14 +121,14 @@ setup_firewall() {
         sudo ufw allow 443/tcp
         sudo ufw allow 25565/tcp
         sudo ufw allow 25575/tcp
-        sudo ufw allow 23333/tcp
+        sudo ufw allow 8443/tcp
         echo "Firewall configured"
 EOF
 }
 
 # Start services
 start_services() {
-    print_status "Starting MCSManager..."
+    print_status "Starting MineOS..."
     ssh -i ~/.ssh/id_rsa "$SERVER_USER@$SERVER_HOST" << 'EOF'
         cd ~/minecraft-server
         
@@ -143,11 +143,11 @@ start_services() {
         sleep 15
         
         # Check if services are running
-        if docker ps | grep -q mcsmanager; then
-            echo "✅ MCSManager is running!"
+        if docker ps | grep -q mineos; then
+            echo "✅ MineOS is running!"
         else
-            echo "❌ MCSManager failed to start"
-            docker-compose logs
+            echo "❌ MineOS failed to start"
+            docker compose logs
             exit 1
         fi
 EOF
@@ -174,19 +174,19 @@ verify_deployment() {
     ssh -i ~/.ssh/id_rsa "$SERVER_USER@$SERVER_HOST" << 'EOF'
         echo "🔍 Verifying deployment..."
         
-        # Check if MCSManager is running
-        if docker ps | grep -q mcsmanager; then
-            echo "✅ MCSManager is running"
+        # Check if MineOS is running
+        if docker ps | grep -q mineos; then
+            echo "✅ MineOS is running"
         else
-            echo "❌ MCSManager is not running"
+            echo "❌ MineOS is not running"
             exit 1
         fi
         
         # Check if web panel port is accessible
-        if nc -z localhost 23333; then
-            echo "✅ Web panel port 23333 is accessible"
+        if nc -z localhost 8443; then
+            echo "✅ Web panel port 8443 is accessible"
         else
-            echo "❌ Web panel port 23333 is not accessible"
+            echo "❌ Web panel port 8443 is not accessible"
             exit 1
         fi
         
@@ -217,17 +217,17 @@ deploy() {
     print_header "Deployment Complete! 🎉"
     echo ""
     echo "🌐 Access your Minecraft server management panel at:"
-    echo "   http://$SERVER_HOST:23333"
+    echo "   https://$SERVER_HOST:8443"
     echo ""
     echo "🎮 Default login credentials:"
-    echo "   Username: admin"
-    echo "   Password: admin"
+    echo "   Username: mc"
+    echo "   Password: mc"
     echo ""
     echo "⚠️  IMPORTANT: Change the default password after first login!"
     echo ""
     echo "📋 Next steps:"
-    echo "   1. Open http://$SERVER_HOST:23333 in your browser"
-    echo "   2. Login with admin/admin"
+    echo "   1. Open https://$SERVER_HOST:8443 in your browser"
+    echo "   2. Login with mc/mc"
     echo "   3. Change the admin password"
     echo "   4. Create your first Minecraft server"
     echo "   5. Upload your custom world through the web interface"
