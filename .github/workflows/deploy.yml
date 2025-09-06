@@ -62,6 +62,15 @@ jobs:
         ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
           set -e
           
+          # Check if minecraft user exists (indicates initial setup)
+          if ! id minecraft &>/dev/null; then
+            echo "❌ EC2 instance not set up yet!"
+            echo "Please run the initial setup first:"
+            echo "1. Upload scripts/deploy-ec2.sh to EC2"
+            echo "2. SSH into EC2 and run: sudo ./deploy-ec2.sh"
+            exit 1
+          fi
+          
           # Create backup of current server
           if [ -d "/opt/minecraft/server" ]; then
             echo "Creating backup of current server..."
