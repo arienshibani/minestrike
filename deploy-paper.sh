@@ -261,11 +261,19 @@ verify_deployment() {
         fi
         
         # Check if port is listening (better method for IPv6)
-        if netstat -tlnp | grep -q ":25565 "; then
+        if sudo netstat -tlnp | grep -q ":25565 "; then
             echo "✅ Port 25565 is listening"
-            netstat -tlnp | grep 25565
+            sudo netstat -tlnp | grep 25565
+        elif sudo ss -tlnp | grep -q ":25565 "; then
+            echo "✅ Port 25565 is listening (via ss)"
+            sudo ss -tlnp | grep 25565
         else
             echo "❌ Port 25565 is not listening"
+            echo "Debug info:"
+            echo "netstat output:"
+            sudo netstat -tlnp | grep java || echo "No Java processes found"
+            echo "ss output:"
+            sudo ss -tlnp | grep java || echo "No Java processes found"
             exit 1
         fi
         
