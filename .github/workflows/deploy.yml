@@ -154,6 +154,16 @@ jobs:
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
           
+          # Setup automatic elytra distribution
+          echo "🎮 Setting up automatic elytra distribution..."
+          if [ -f "/opt/minecraft/server/world/datapacks/elytra_giver/pack.mcmeta" ]; then
+            echo "✅ Elytra datapack found, enabling..."
+            # Give elytra to all current players
+            echo "give @a elytra 1" | sudo -u minecraft tee -a /opt/minecraft/server/console_input.txt
+            echo "give @a firework_rocket 64" | sudo -u minecraft tee -a /opt/minecraft/server/console_input.txt
+            echo "✅ Elytra auto-give setup complete!"
+          fi
+          
           # Verify the world is correct
           echo "🗺️ Verifying world configuration:"
           echo "Level name: $(cat /opt/minecraft/server/server.properties | grep level-name | cut -d'=' -f2)"
