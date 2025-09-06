@@ -130,8 +130,16 @@ jobs:
             echo "✅ Found de_dust2 map, installing..."
             sudo ./scripts/install-map.sh maps/custom/de_dust2
             echo "✅ de_dust2 map installed successfully!"
+            
+            # Ensure server is restarted to pick up changes
+            echo "🔄 Restarting server to apply changes..."
+            sudo systemctl restart minecraft-server
+            sleep 5
+            echo "✅ Server restarted successfully!"
           else
             echo "⚠️ de_dust2 map not found, using default world"
+            # Start server if not already running
+            sudo systemctl start minecraft-server
           fi
           
           # Configure firewall
@@ -141,10 +149,15 @@ jobs:
           sudo ufw allow 25565/tcp
           sudo ufw allow 25575/tcp
           
-          # Wait and check status (server should already be running from install-map)
+          # Wait and check status
           sleep 10
           echo "📊 Server status:"
           sudo systemctl status minecraft-server --no-pager
+          
+          # Verify the world is correct
+          echo "🗺️ Verifying world configuration:"
+          echo "Level name: $(cat /opt/minecraft/server/server.properties | grep level-name | cut -d'=' -f2)"
+          echo "World directory: $(ls -la /opt/minecraft/server/world/ | head -5)"
 
         # Clean up
         rm -f /tmp/minestrike-deploy.tar.gz
