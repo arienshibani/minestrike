@@ -13,9 +13,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-MAPS_DIR="/Users/ari/repos/minestrike/maps/custom"
-SERVER_DIR="/Users/ari/repos/minestrike/server"
-BACKUP_DIR="/Users/ari/repos/minestrike/maps/backups"
+MAPS_DIR="/opt/minecraft/maps/custom"
+SERVER_DIR="/opt/minecraft/server"
+BACKUP_DIR="/opt/backups"
 
 # Function to print colored output
 print_status() {
@@ -208,8 +208,14 @@ main() {
     
     print_header "Installing Custom Map: $map_name"
     
-    check_input "$input_path"
-    extract_map "$input_path" "$map_name"
+    # Check input type and proceed accordingly
+    if check_input "$input_path"; then
+        # It's a zip file
+        extract_map "$input_path" "$map_name"
+    else
+        # It's a directory
+        extract_map "$input_path" "$map_name"
+    fi
     backup_current_world
     install_map "$map_name"
     update_server_properties "$map_name"

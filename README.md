@@ -1,6 +1,6 @@
 # 🎮 MineStrike - Minecraft Server with Auto-Deployment
 
-[![Deploy to EC2](https://github.com/yourusername/minestrike/actions/workflows/deploy.yml/badge.svg)](https://github.com/yourusername/minestrike/actions/workflows/deploy.yml)
+[![Deploy to EC2](https://github.com/arienshibani/minestrike/actions/workflows/deploy.yml/badge.svg)](https://github.com/arienshibani/minestrike/actions/workflows/deploy.yml)
 
 A complete Minecraft server setup with **automatic deployment** to AWS EC2 via GitHub Actions. Features mod support, automated backups, and production-ready configuration.
 
@@ -331,3 +331,4 @@ Optimize `server.properties`:
 ## License
 
 This project is provided as-is for educational and personal use. Minecraft is a trademark of Mojang Studios.
+# Test deployment fix
